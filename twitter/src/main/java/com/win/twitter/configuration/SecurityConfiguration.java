@@ -1,5 +1,7 @@
 package com.win.twitter.configuration;
 
+import javax.sql.DataSource;
+
 // This class sets up the security filter which allows certain 
 
 // pages/resources to be accessed without logging in (the login screen, registration screen, h2 console, stylesheets, etc), while restricting access to all other pages and redirecting the user to the
@@ -14,8 +16,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-
-import lombok.Value;
+import org.springframework.beans.factory.annotation.Value;
+//import lombok.Value;
 
 @Configuration
 @EnableWebSecurity

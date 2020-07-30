@@ -1,10 +1,12 @@
 package com.win.twitter.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.validation.Valid;
 
 import com.win.twitter.model.Tweet;
+import com.win.twitter.model.TweetDisplay;
 import com.win.twitter.model.User;
 import com.win.twitter.service.TweetService;
 import com.win.twitter.service.UserService;
@@ -14,7 +16,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class TweetController {
@@ -25,8 +29,20 @@ public class TweetController {
     private TweetService tweetService;
 
     @GetMapping(value = { "/tweets", "/" })
-    public String getFeed(Model model) {
-        List<Tweet> tweets = tweetService.findAll();
+    public String getFeed(@RequestParam(value = "filter", required = false) String filter, Model model) {
+        User loggedInUser = userService.getLoggedInUser();
+        List<TweetDisplay> tweets = new ArrayList<>();
+        if (filter == null) {
+            filter = "all";
+        }
+        if (filter.equalsIgnoreCase("following")) {
+            List<User> following = loggedInUser.getFollowing();
+            tweets = tweetService.findAllByUsers(following);
+            model.addAttribute("filter", "following");
+        } else {
+            tweets = tweetService.findAll();
+            model.addAttribute("filter", "all");
+        }
         model.addAttribute("tweetList", tweets);
         return "feed";
     }
@@ -38,6 +54,8 @@ public class TweetController {
         return "newTweet";
     }
 
+    // This method handles the form submission from the 'new tweet' page. This
+    // method gets the logged in user and associates them with the tweet!
     @PostMapping(value = "/tweets")
     public String submitTweetForm(@Valid Tweet tweet, BindingResult bindingResult, Model model) {
         User user = userService.getLoggedInUser();
@@ -48,5 +66,13 @@ public class TweetController {
             model.addAttribute("tweet", new Tweet());
         }
         return "newTweet";
+    }
+
+    @GetMapping(value = "/tweets/{tag}")
+    public String getTweetsByTag(@PathVariable(value = "tag") String tag, Model model) {
+        List<TweetDisplay> tweets = tweetService.findAllWithTag(tag);
+        model.addAttribute("tweetList", tweets);
+        model.addAttribute("tag", tag);
+        return "taggedTweets";
     }
 }
